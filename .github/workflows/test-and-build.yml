@@ -64,3 +64,84 @@ jobs:
       - name: Run integration tests
         run: |
           pytest test_docker_integration.py -v
+
+  k8s-integration-test:
+    name: Kubernetes Integration Test
+    runs-on: ubuntu-latest
+    needs: integration-test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up kind
+        uses: helm/kind-action@v1
+        with:
+          cluster_name: flask-hello-test
+          wait: 60s
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: flask-hello:test
+          cache-from: type=gha
+
+      - name: Load image into kind
+        run: |
+          kind load docker-image flask-hello:test --name flask-hello-test
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: '3.14.0'
+
+      - name: Deploy Helm chart
+        run: |
+          helm install flask-hello ./helm/flask-hello \
+            --set image.repository=flask-hello \
+            --set image.tag=test \
+            --set image.pullPolicy=Never \
+            --wait --timeout=2m
+
+      - name: Verify deployment
+        run: |
+          kubectl get pods
+          kubectl get services
+          kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=flask-hello --timeout=60s
+
+      - name: Test application endpoint
+        run: |
+          # Port forward in background
+          kubectl port-forward svc/flask-hello 8080:80 &
+          PF_PID=$!
+
+          # Wait for port forward to be ready
+          sleep 5
+
+          # Test the endpoint
+          response=$(curl -s http://localhost:8080/)
+          echo "Response: $response"
+
+          if [ "$response" != "Hello World" ]; then
+            echo "ERROR: Expected 'Hello World', got '$response'"
+            exit 1
+          fi
+
+          echo "SUCCESS: Application responded correctly"
+
+          # Cleanup
+          kill $PF_PID
+
+      - name: Show logs on failure
+        if: failure()
+        run: |
+          echo "=== Pod Status ==="
+          kubectl get pods
+          echo "=== Pod Logs ==="
+          kubectl logs -l app.kubernetes.io/name=flask-hello --tail=100
+          echo "=== Events ==="
+          kubectl get events --sort-by='.lastTimestamp'

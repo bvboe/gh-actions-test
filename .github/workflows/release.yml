@@ -64,9 +64,32 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: '3.14.0'
+
+      - name: Package and push Helm chart
+        run: |
+          # Extract version from tag (remove 'v' prefix)
+          VERSION="${GITHUB_REF_NAME#v}"
+
+          # Update chart version and appVersion
+          sed -i "s/^version:.*/version: ${VERSION}/" helm/flask-hello/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: \"${VERSION}\"/" helm/flask-hello/Chart.yaml
+
+          # Package the chart
+          helm package helm/flask-hello
+
+          # Push to OCI registry
+          helm push flask-hello-${VERSION}.tgz oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/charts
+        env:
+          HELM_EXPERIMENTAL_OCI: 1
+
       - name: Generate release notes
         id: release_notes
         run: |
+          VERSION="${GITHUB_REF_NAME#v}"
           cat << EOF > release_notes.md
           ## Docker Image
 
@@ -75,6 +98,20 @@ jobs:
           \`\`\`bash
           docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
           docker run -p 5000:5000 ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+          \`\`\`
+
+          ## Helm Chart
+
+          Install from OCI registry:
+
+          \`\`\`bash
+          helm install flask-hello oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/charts/flask-hello --version ${VERSION}
+          \`\`\`
+
+          Or from the repository:
+
+          \`\`\`bash
+          helm install flask-hello ./helm/flask-hello --set image.tag=${{ github.ref_name }}
           \`\`\`
 
           ## Tags Created

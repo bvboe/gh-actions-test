@@ -1,0 +1,15 @@
+apiVersion: v2
+name: flask-hello
+description: A Helm chart for deploying Flask Hello World application
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - flask
+  - python
+  - web
+maintainers:
+  - name: bvboe
+home: https://github.com/bvboe/gh-actions-test
+sources:
+  - https://github.com/bvboe/gh-actions-test
