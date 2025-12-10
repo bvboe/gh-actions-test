@@ -179,3 +179,7 @@ Helm chart (helm/flask-hello/) for Kubernetes deployment with:
   - Builds multi-platform Docker images
   - Packages and pushes Helm chart as OCI artifact
   - Creates GitHub Release
+- `.github/dependabot.yml` - Automated dependency updates:
+  - Python dependencies (weekly)
+  - GitHub Actions (weekly)
+  - Docker base images (weekly)
