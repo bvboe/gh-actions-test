@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Builder stage: Install dependencies using the -dev variant
-FROM cgr.dev/chainguard/python:latest-dev as builder
+FROM cgr.dev/chainguard/python:latest-dev AS builder
 
 WORKDIR /app
 
