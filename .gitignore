@@ -22,3 +22,7 @@ build/
 # OS
 .DS_Store
 Thumbs.db
+
+# Claude Code (local/per-user)
+.claude/settings.local.json
+.claude/*.lock
