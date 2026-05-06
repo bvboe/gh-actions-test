@@ -111,7 +111,7 @@ jobs:
           kind load docker-image flask-hello:test --name flask-hello-test
 
       - name: Install Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v5
         with:
           version: '3.14.0'
 
