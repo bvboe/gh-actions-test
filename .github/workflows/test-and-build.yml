@@ -61,11 +61,19 @@ jobs:
           image: flask-hello:test
           fail-build: false
 
+      - name: Rewrite SARIF locations to Dockerfile
+        id: rewrite
+        if: steps.scan.outputs.sarif != ''
+        run: |
+          jq '(.runs[].results[].locations[].physicalLocation.artifactLocation.uri) = "Dockerfile"' \
+            "${{ steps.scan.outputs.sarif }}" > grype.sarif
+          echo "sarif=grype.sarif" >> "$GITHUB_OUTPUT"
+
       - name: Upload SARIF report
-        if: always() && steps.scan.outputs.sarif != ''
+        if: always() && steps.rewrite.outputs.sarif != ''
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: ${{ steps.scan.outputs.sarif }}
+          sarif_file: ${{ steps.rewrite.outputs.sarif }}
           category: grype
 
       - name: Set up Python
