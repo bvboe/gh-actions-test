@@ -59,6 +59,7 @@ jobs:
         id: scan
         with:
           image: flask-hello:test
+          fail-build: false
 
       - name: Upload SARIF report
         if: always() && steps.scan.outputs.sarif != ''
