@@ -11,6 +11,9 @@ env:
 
 jobs:
   test-and-build:
+    permissions:
+      contents: read
+      security-events: write
     uses: ./.github/workflows/test-and-build.yml
     with:
       python-version: '3.14'
