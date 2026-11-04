@@ -26,3 +26,5 @@ Thumbs.db
 # Claude Code (local/per-user)
 .claude/settings.local.json
 .claude/*.lock
+local_notes.txt
+
