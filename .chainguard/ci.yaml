@@ -5,6 +5,7 @@ environment:
 
 checks:
   hello-world:
+    trigger: [presubmit, postsubmit]
     description: Minimal smoke test that the Chainguard Checks plane runs this repo.
     script: |
       echo "Hello World from Chainguard Checks"
@@ -13,6 +14,7 @@ checks:
     timeout: 5m
 
   unit-tests:
+    trigger: [presubmit, postsubmit]
     description: Run the Flask unit tests with pytest.
     needs: [hello-world]
     vars:
