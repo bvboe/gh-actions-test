@@ -29,6 +29,14 @@ def test_hello_world_content_type(client):
     assert response.content_type == 'text/html; charset=utf-8'
 
 
+def test_health_endpoint(client):
+    """Test that the health endpoint returns an ok status as JSON."""
+    response = client.get('/health')
+    assert response.status_code == 200
+    assert response.content_type == 'application/json'
+    assert response.get_json() == {'status': 'ok'}
+
+
 def test_404_error(client):
     """Test that non-existent routes return 404."""
     response = client.get('/nonexistent')
