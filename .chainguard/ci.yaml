@@ -1,0 +1,26 @@
+version: 1
+
+environment:
+  packages: [busybox, python-3.14]
+
+checks:
+  hello-world:
+    description: Minimal smoke test that the Chainguard Checks plane runs this repo.
+    script: |
+      echo "Hello World from Chainguard Checks"
+      echo "Running in: $(pwd)"
+      ls -la
+    timeout: 5m
+
+  unit-tests:
+    description: Run the Flask unit tests with pytest.
+    needs: [hello-world]
+    vars:
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+    script: |
+      python3 -m venv /var/tmp/venv
+      /var/tmp/venv/bin/pip install -r requirements-dev.txt
+      /var/tmp/venv/bin/pytest test_app.py -v
+    network:
+      egress: [pypi.org, files.pythonhosted.org]
+    timeout: 10m
